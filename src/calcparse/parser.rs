@@ -76,7 +76,11 @@ impl<'a> Parser<'a> {
         self.check_paren(Token::Comma)?;
         let arg3_expr = self.generate_ast(OperPrec::DefaultZero)?;
         self.check_paren(Token::RightParen)?;
-        Ok((Box::new(arg1_expr), Box::new(arg2_expr), Box::new(arg3_expr)))
+        Ok((
+            Box::new(arg1_expr),
+            Box::new(arg2_expr),
+            Box::new(arg3_expr),
+        ))
     }
     fn parse_number(&mut self) -> Result<Node, ParseError> {
         let token = self.current_token.clone();
@@ -169,7 +173,9 @@ impl<'a> Parser<'a> {
                 self.check_paren(Token::RightCeiling)?;
                 Ok(Node::Floor(Box::new(expr)))
             }
-            _ => Err(ParseError::UnableToParse("Unknown parsing token for parsing number".to_string())),
+            _ => Err(ParseError::UnableToParse(
+                "Unknown parsing token for parsing number".to_string(),
+            )),
         }
     }
     fn check_paren(&mut self, expected: Token) -> Result<(), ParseError> {

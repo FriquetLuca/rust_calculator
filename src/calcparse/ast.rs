@@ -1,5 +1,5 @@
-use std::error;
 use statrs::function::gamma::gamma;
+use std::error;
 
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
@@ -99,11 +99,11 @@ pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
         Pow2(sub_expr) => {
             let result = eval(*sub_expr)?;
             Ok(result * result)
-        },
+        }
         Pow3(sub_expr) => {
             let result = eval(*sub_expr)?;
             Ok(result * result * result)
-        },
+        }
         Atan2(expr1, expr2) => Ok(eval(*expr1)?.atan2(eval(*expr2)?)),
     }
 }
@@ -156,7 +156,10 @@ mod tests {
     fn test_expr6() {
         use crate::calcparse::parser::Parser;
 
-        let ast = Parser::new("2+3*atan2(3,7)", None).unwrap().parse().unwrap();
+        let ast = Parser::new("2+3*atan2(3,7)", None)
+            .unwrap()
+            .parse()
+            .unwrap();
         let value = eval(ast).unwrap();
         assert_eq!(value, 2.0 + 3.0 * (3.0 as f64).atan2(7.0));
     }

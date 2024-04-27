@@ -1,6 +1,6 @@
+use super::token::Token;
 use std::iter::Peekable;
 use std::str::Chars;
-use super::token::Token;
 
 pub struct Tokenizer<'a> {
     expr: Peekable<Chars<'a>>,
@@ -124,7 +124,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                 } else {
                     Some(Token::E)
                 }
-            },
+            }
             Some('l') => {
                 if self.expr.clone().take(2).collect::<String>() == "n(" {
                     self.expr.by_ref().take(1).for_each(drop);

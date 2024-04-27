@@ -1,8 +1,8 @@
 mod calcparse;
 
-use std::io;
 use calcparse::ast;
 use calcparse::parser::{ParseError, Parser};
+use std::io;
 
 fn evaluate(expr: String, old_answer: f64) -> Result<f64, ParseError> {
     let expr = expr.split_whitespace().collect::<String>();
@@ -37,7 +37,7 @@ fn main() {
                     Ok(val) => {
                         old_eval = val;
                         println!("= {}\n", val)
-                    },
+                    }
                     Err(_) => {
                         println!("Error in evaluating expression. Please enter valid expression\n");
                     }
