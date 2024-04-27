@@ -1,12 +1,6 @@
-/// This program contains list of valid AST nodes that can be constructed and also evaluates an AST to compute a value
-// Standard lib
 use std::error;
 use statrs::function::gamma::gamma;
 
-//structs
-
-// List of allowed AST nodes that can be constructed by Parser
-// Tokens can be arithmetic operators or a Number
 #[derive(Debug, Clone, PartialEq)]
 pub enum Node {
     Add(Box<Node>, Box<Node>),
@@ -17,10 +11,36 @@ pub enum Node {
     Caret(Box<Node>, Box<Node>),
     Negative(Box<Node>),
     Factorial(Box<Node>),
+    Abs(Box<Node>),
+    Floor(Box<Node>),
+    Ceil(Box<Node>),
+    Round(Box<Node>),
+    Sin(Box<Node>),
+    Cos(Box<Node>),
+    Tan(Box<Node>),
+    Sinh(Box<Node>),
+    Cosh(Box<Node>),
+    Tanh(Box<Node>),
+    Arsinh(Box<Node>),
+    Arcosh(Box<Node>),
+    Artanh(Box<Node>),
+    Asin(Box<Node>),
+    Acos(Box<Node>),
+    Atan(Box<Node>),
+    Atan2(Box<Node>, Box<Node>),
+    Sqrt(Box<Node>),
+    Pow(Box<Node>, Box<Node>),
+    Pow2(Box<Node>),
+    Pow3(Box<Node>),
+    Ln(Box<Node>),
+    Exp(Box<Node>),
+    Exp2(Box<Node>),
+    Truncate(Box<Node>),
+    Sign(Box<Node>),
+    Log(Box<Node>, Box<Node>),
     Number(f64),
 }
 
-// Given an AST, calculate the numeric value.
 pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
     use self::Node::*;
     match expr {
@@ -32,6 +52,7 @@ pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
         Modulo(expr1, expr2) => Ok(eval(*expr1)? % eval(*expr2)?),
         Negative(expr1) => Ok(-(eval(*expr1)?)),
         Caret(expr1, expr2) => Ok(eval(*expr1)?.powf(eval(*expr2)?)),
+        Pow(expr1, expr2) => Ok(eval(*expr1)?.powf(eval(*expr2)?)),
         Factorial(sub_expr) => {
             let sub_result = eval(*sub_expr)?;
             if sub_result >= 0.0 {
@@ -52,6 +73,38 @@ pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
                 }
             }
         }
+        Abs(sub_expr) => Ok(eval(*sub_expr)?.abs()),
+        Floor(sub_expr) => Ok(eval(*sub_expr)?.floor()),
+        Ceil(sub_expr) => Ok(eval(*sub_expr)?.ceil()),
+        Round(sub_expr) => Ok(eval(*sub_expr)?.round()),
+        Sin(sub_expr) => Ok(eval(*sub_expr)?.sin()),
+        Cos(sub_expr) => Ok(eval(*sub_expr)?.cos()),
+        Tan(sub_expr) => Ok(eval(*sub_expr)?.tan()),
+        Sinh(sub_expr) => Ok(eval(*sub_expr)?.sinh()),
+        Cosh(sub_expr) => Ok(eval(*sub_expr)?.cosh()),
+        Tanh(sub_expr) => Ok(eval(*sub_expr)?.tanh()),
+        Asin(sub_expr) => Ok(eval(*sub_expr)?.asin()),
+        Acos(sub_expr) => Ok(eval(*sub_expr)?.acos()),
+        Atan(sub_expr) => Ok(eval(*sub_expr)?.atan()),
+        Arsinh(sub_expr) => Ok(eval(*sub_expr)?.asinh()),
+        Arcosh(sub_expr) => Ok(eval(*sub_expr)?.acosh()),
+        Artanh(sub_expr) => Ok(eval(*sub_expr)?.atanh()),
+        Sqrt(sub_expr) => Ok(eval(*sub_expr)?.sqrt()),
+        Ln(sub_expr) => Ok(eval(*sub_expr)?.ln()),
+        Truncate(sub_expr) => Ok(eval(*sub_expr)?.trunc()),
+        Sign(sub_expr) => Ok(eval(*sub_expr)?.signum()),
+        Exp(sub_expr) => Ok(eval(*sub_expr)?.exp()),
+        Exp2(sub_expr) => Ok(eval(*sub_expr)?.exp2()),
+        Log(expr1, expr2) => Ok(eval(*expr1)?.log(eval(*expr2)?)),
+        Pow2(sub_expr) => {
+            let result = eval(*sub_expr)?;
+            Ok(result * result)
+        },
+        Pow3(sub_expr) => {
+            let result = eval(*sub_expr)?;
+            Ok(result * result * result)
+        },
+        Atan2(expr1, expr2) => Ok(eval(*expr1)?.atan2(eval(*expr2)?)),
     }
 }
 
@@ -63,7 +116,7 @@ mod tests {
     fn test_expr1() {
         use crate::calcparse::parser::Parser;
 
-        let ast = Parser::new("1+2-3").unwrap().parse().unwrap();
+        let ast = Parser::new("1+2-3", None).unwrap().parse().unwrap();
         let value = eval(ast).unwrap();
         assert_eq!(value, 0.0);
     }
@@ -71,8 +124,40 @@ mod tests {
     fn test_expr2() {
         use crate::calcparse::parser::Parser;
 
-        let ast = Parser::new("3+2-1*5/4").unwrap().parse().unwrap();
+        let ast = Parser::new("3+2-1*5/4", None).unwrap().parse().unwrap();
         let value = eval(ast).unwrap();
         assert_eq!(value, 3.75);
+    }
+    #[test]
+    fn test_expr3() {
+        use crate::calcparse::parser::Parser;
+
+        let ast = Parser::new("5+(2*7-3!)*3", None).unwrap().parse().unwrap();
+        let value = eval(ast).unwrap();
+        assert_eq!(value, 29.0);
+    }
+    #[test]
+    fn test_expr4() {
+        use crate::calcparse::parser::Parser;
+
+        let ast = Parser::new("2*4%3/2", None).unwrap().parse().unwrap();
+        let value = eval(ast).unwrap();
+        assert_eq!(value, 1.0);
+    }
+    #[test]
+    fn test_expr5() {
+        use crate::calcparse::parser::Parser;
+
+        let ast = Parser::new("3*2^3*3", None).unwrap().parse().unwrap();
+        let value = eval(ast).unwrap();
+        assert_eq!(value, 72.0);
+    }
+    #[test]
+    fn test_expr6() {
+        use crate::calcparse::parser::Parser;
+
+        let ast = Parser::new("2+3*atan2(3,7)", None).unwrap().parse().unwrap();
+        let value = eval(ast).unwrap();
+        assert_eq!(value, 2.0 + 3.0 * (3.0 as f64).atan2(7.0));
     }
 }
