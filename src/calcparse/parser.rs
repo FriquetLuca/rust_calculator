@@ -51,37 +51,52 @@ impl<'a> Parser<'a> {
         }
         Ok(left_expr)
     }
-    fn function_1_args(&mut self) -> Result<Box<Node>, ParseError> {
+    // fn function_1_args(&mut self) -> Result<Box<Node>, ParseError> {
+    //     self.get_next_token()?;
+    //     self.check_paren(Token::LeftParen)?;
+    //     let arg_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::RightParen)?;
+    //     Ok(Box::new(arg_expr))
+    // }
+    // fn function_2_args(&mut self) -> Result<(Box<Node>, Box<Node>), ParseError> {
+    //     self.get_next_token()?;
+    //     self.check_paren(Token::LeftParen)?;
+    //     let arg1_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::Comma)?;
+    //     let arg2_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::RightParen)?;
+    //     Ok((Box::new(arg1_expr), Box::new(arg2_expr)))
+    // }
+    // fn _function_3_args(&mut self) -> Result<(Box<Node>, Box<Node>, Box<Node>), ParseError> {
+    //     self.get_next_token()?;
+    //     self.check_paren(Token::LeftParen)?;
+    //     let arg1_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::Comma)?;
+    //     let arg2_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::Comma)?;
+    //     let arg3_expr = self.generate_ast(OperPrec::DefaultZero)?;
+    //     self.check_paren(Token::RightParen)?;
+    //     Ok((
+    //         Box::new(arg1_expr),
+    //         Box::new(arg2_expr),
+    //         Box::new(arg3_expr),
+    //     ))
+    // }
+    fn function_n_args(&mut self, n: i32) -> Result<Vec<Box<Node>>, ParseError>{
         self.get_next_token()?;
         self.check_paren(Token::LeftParen)?;
-        let arg_expr = self.generate_ast(OperPrec::DefaultZero)?;
+        let mut args = Vec::new();
+        for i in 0..n {
+            let arg_expr = self.generate_ast(OperPrec::DefaultZero)?;
+            args.push(Box::new(arg_expr));
+            if i < n - 1{
+                self.check_paren(Token::Comma)?;
+            }
+        }
         self.check_paren(Token::RightParen)?;
-        Ok(Box::new(arg_expr))
+        Ok(args)
     }
-    fn function_2_args(&mut self) -> Result<(Box<Node>, Box<Node>), ParseError> {
-        self.get_next_token()?;
-        self.check_paren(Token::LeftParen)?;
-        let arg1_expr = self.generate_ast(OperPrec::DefaultZero)?;
-        self.check_paren(Token::Comma)?;
-        let arg2_expr = self.generate_ast(OperPrec::DefaultZero)?;
-        self.check_paren(Token::RightParen)?;
-        Ok((Box::new(arg1_expr), Box::new(arg2_expr)))
-    }
-    fn _function_3_args(&mut self) -> Result<(Box<Node>, Box<Node>, Box<Node>), ParseError> {
-        self.get_next_token()?;
-        self.check_paren(Token::LeftParen)?;
-        let arg1_expr = self.generate_ast(OperPrec::DefaultZero)?;
-        self.check_paren(Token::Comma)?;
-        let arg2_expr = self.generate_ast(OperPrec::DefaultZero)?;
-        self.check_paren(Token::Comma)?;
-        let arg3_expr = self.generate_ast(OperPrec::DefaultZero)?;
-        self.check_paren(Token::RightParen)?;
-        Ok((
-            Box::new(arg1_expr),
-            Box::new(arg2_expr),
-            Box::new(arg3_expr),
-        ))
-    }
+
     fn parse_number(&mut self) -> Result<Node, ParseError> {
         let token = self.current_token.clone();
         match token {
@@ -89,39 +104,39 @@ impl<'a> Parser<'a> {
                 self.get_next_token()?;
                 Ok(Node::Number(self.old_answer))
             }
-            Token::Abs => Ok(Node::Abs(self.function_1_args()?)),
-            Token::Floor => Ok(Node::Floor(self.function_1_args()?)),
-            Token::Ceil => Ok(Node::Ceil(self.function_1_args()?)),
-            Token::Round => Ok(Node::Round(self.function_1_args()?)),
-            Token::Sin => Ok(Node::Sin(self.function_1_args()?)),
-            Token::Cos => Ok(Node::Cos(self.function_1_args()?)),
-            Token::Tan => Ok(Node::Tan(self.function_1_args()?)),
-            Token::Sinh => Ok(Node::Sinh(self.function_1_args()?)),
-            Token::Cosh => Ok(Node::Cosh(self.function_1_args()?)),
-            Token::Tanh => Ok(Node::Tanh(self.function_1_args()?)),
-            Token::Asin => Ok(Node::Asin(self.function_1_args()?)),
-            Token::Acos => Ok(Node::Acos(self.function_1_args()?)),
-            Token::Atan => Ok(Node::Atan(self.function_1_args()?)),
-            Token::Arsinh => Ok(Node::Arsinh(self.function_1_args()?)),
-            Token::Arcosh => Ok(Node::Arcosh(self.function_1_args()?)),
-            Token::Artanh => Ok(Node::Artanh(self.function_1_args()?)),
-            Token::Sqrt => Ok(Node::Sqrt(self.function_1_args()?)),
-            Token::Exp => Ok(Node::Exp(self.function_1_args()?)),
-            Token::Exp2 => Ok(Node::Exp2(self.function_1_args()?)),
-            Token::Ln => Ok(Node::Ln(self.function_1_args()?)),
-            Token::Sign => Ok(Node::Sign(self.function_1_args()?)),
-            Token::Truncate => Ok(Node::Truncate(self.function_1_args()?)),
+            Token::Abs => Ok(Node::Abs(self.function_n_args(1)?[0].clone())),
+            Token::Floor => Ok(Node::Floor(self.function_n_args(1)?[0].clone())),
+            Token::Ceil => Ok(Node::Ceil(self.function_n_args(1)?[0].clone())),
+            Token::Round => Ok(Node::Round(self.function_n_args(1)?[0].clone())),
+            Token::Sin => Ok(Node::Sin(self.function_n_args(1)?[0].clone())),
+            Token::Cos => Ok(Node::Cos(self.function_n_args(1)?[0].clone())),
+            Token::Tan => Ok(Node::Tan(self.function_n_args(1)?[0].clone())),
+            Token::Sinh => Ok(Node::Sinh(self.function_n_args(1)?[0].clone())),
+            Token::Cosh => Ok(Node::Cosh(self.function_n_args(1)?[0].clone())),
+            Token::Tanh => Ok(Node::Tanh(self.function_n_args(1)?[0].clone())),
+            Token::Asin => Ok(Node::Asin(self.function_n_args(1)?[0].clone())),
+            Token::Acos => Ok(Node::Acos(self.function_n_args(1)?[0].clone())),
+            Token::Atan => Ok(Node::Atan(self.function_n_args(1)?[0].clone())),
+            Token::Arsinh => Ok(Node::Arsinh(self.function_n_args(1)?[0].clone())),
+            Token::Arcosh => Ok(Node::Arcosh(self.function_n_args(1)?[0].clone())),
+            Token::Artanh => Ok(Node::Artanh(self.function_n_args(1)?[0].clone())),
+            Token::Sqrt => Ok(Node::Sqrt(self.function_n_args(1)?[0].clone())),
+            Token::Exp => Ok(Node::Exp(self.function_n_args(1)?[0].clone())),
+            Token::Exp2 => Ok(Node::Exp2(self.function_n_args(1)?[0].clone())),
+            Token::Ln => Ok(Node::Ln(self.function_n_args(1)?[0].clone())),
+            Token::Sign => Ok(Node::Sign(self.function_n_args(1)?[0].clone())),
+            Token::Truncate => Ok(Node::Truncate(self.function_n_args(1)?[0].clone())),
             Token::Atan2 => {
-                let (arg_1, arg_2) = self.function_2_args()?;
-                Ok(Node::Atan2(arg_1, arg_2))
+                let args = self.function_n_args(2)?;
+                Ok(Node::Atan2(args[0].clone(), args[1].clone()))
             }
             Token::Pow => {
-                let (arg_1, arg_2) = self.function_2_args()?;
-                Ok(Node::Pow(arg_1, arg_2))
+                let args = self.function_n_args(2)?;
+                Ok(Node::Pow(args[0].clone(), args[1].clone()))
             }
             Token::Log => {
-                let (arg_1, arg_2) = self.function_2_args()?;
-                Ok(Node::Log(arg_1, arg_2))
+                let args = self.function_n_args(2)?;
+                Ok(Node::Log(args[0].clone(), args[1].clone()))
             }
             Token::Subtract => {
                 self.get_next_token()?;
