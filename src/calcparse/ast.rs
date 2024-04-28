@@ -65,12 +65,10 @@ pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
                     }
                     Ok(factorial_result)
                 }
+            } else if (sub_result % 1.0) == 0.0 {
+                Ok(f64::NAN)
             } else {
-                if (sub_result % 1.0) == 0.0 {
-                    Ok(f64::NAN)
-                } else {
-                    Ok(gamma(sub_result + 1.0))
-                }
+                Ok(gamma(sub_result + 1.0))
             }
         }
         Abs(sub_expr) => Ok(eval(*sub_expr)?.abs()),

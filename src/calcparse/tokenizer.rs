@@ -43,7 +43,7 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('0'..='9') => {
                 let mut number = next_char?.to_string();
                 while let Some(next_char) = self.expr.peek() {
-                    if next_char.is_digit(10) || next_char == &'.' {
+                    if next_char.is_ascii_digit() || next_char == &'.' {
                         number.push(self.expr.next()?);
                     } else if next_char == &'(' {
                         return None;
@@ -195,7 +195,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                     None
                 }
             }
-            None => Some(Token::EOF),
+            None => Some(Token::Eof),
             Some(_) => None,
         }
     }

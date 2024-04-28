@@ -46,7 +46,7 @@ pub enum Token {
     Bar,
     Num(f64),
     Ans,
-    EOF,
+    Eof,
 }
 
 #[derive(Debug, PartialEq, PartialOrd)]
