@@ -46,6 +46,8 @@ pub enum Token {
     Min,
     Max,
     Bar,
+    DegToRad,
+    RadToDeg,
     Num(f64),
     Ans,
     Eof,
@@ -67,7 +69,7 @@ impl Token {
         use self::Token::*;
         match *self {
             Add | Subtract => AddSub,
-            Multiply | Divide | Modulo => MulDiv,
+            Multiply | Divide | Modulo | DegToRad | RadToDeg => MulDiv,
             Caret | Pow2 | Pow3 => Power,
             ExclamationMark | Min | Max | Ln | Sign | Truncate | Log | Exp | Exp2 | Pow | Sqrt
             | Arcosh | Arsinh | Artanh | Abs | Floor | Ceil | Round | Sin | Cos | Tan | Sinh

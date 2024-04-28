@@ -309,6 +309,20 @@ impl<'a> Parser<'a> {
                 self.get_next_token()?;
                 Ok(Node::Factorial(Box::new(left_expr)))
             }
+            Token::DegToRad => {
+                self.get_next_token()?;
+                Ok(Node::Multiply(
+                    Box::new(left_expr),
+                    Box::new(Node::Number(0.017453292519943295)),
+                ))
+            }
+            Token::RadToDeg => {
+                self.get_next_token()?;
+                Ok(Node::Multiply(
+                    Box::new(left_expr),
+                    Box::new(Node::Number(57.2957795131)),
+                ))
+            }
             Token::Pow2 => {
                 self.get_next_token()?;
                 Ok(Node::Pow2(Box::new(left_expr)))

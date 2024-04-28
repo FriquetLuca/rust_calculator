@@ -12,17 +12,14 @@ fn evaluate(expr: String, old_answer: f64) -> Result<f64, ParseError> {
 
     Ok(ast::eval(ast)?)
 }
-/*
-    println!("Calculator started...");
-    println!("Getters: PreviousResult(@)");
-    println!("Supported operations: Add(x+y), Subtract(x-y), Multiply(x*y), Divide(x/y), Modulo(x%y), PowerOf(x^y), Abs(|x|), Floor(⌊x⌋), Ceiling(⌈x⌉), Factorial(x!), PowerOf2(x²) and PowerOf3(x³).");
-    println!("Supported functions: abs(x), ln(x), sgn(x), sign(x), signum(x), trunc(x), truncate(x), exp(x), exp2(x), log(x, b), pow(x,y), sqrt(x), floor(x), ceil(x), round(x), sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ), asin(x), acos(x), atan(x), asinh(x), arsinh(x), acosh(x), arcosh(x), atanh(x), artanh(x) and atan2(y, x).");
-    println!("To exit the calculator, write 'exit' or 'close'.");
-    println!("Enter your arithmetic expression below:");
-
-*/
 
 fn main() {
+    println!("Calculator started...");
+    println!("Getters: PreviousResult(@)");
+    println!("Supported operations: Add(x+y), Subtract(x-y), Multiply(x*y), Divide(x/y), Modulo(x%y), PowerOf(x^y), Abs(|x|), Floor(⌊x⌋), Ceiling(⌈x⌉), Factorial(x!), DegToRad(x°), RadToDeg(x rad), PowerOf2(x²) and PowerOf3(x³).");
+    println!("Supported functions: abs(x), ln(x), sgn(x), sign(x), signum(x), trunc(x), truncate(x), min(...X), max(...X), exp(x), exp2(x), log(x, b), pow(x,y), sqrt(x), floor(x), ceil(x), round(x), sin(θ), cos(θ), tan(θ), sinh(θ), cosh(θ), tanh(θ), asin(x), acos(x), atan(x), asinh(x), arsinh(x), acosh(x), arcosh(x), atanh(x), artanh(x) and atan2(y, x).");
+    println!("To exit the calculator, write 'exit' or 'close'.");
+    println!("Enter your arithmetic expression below:");
     let mut old_eval = 0.0;
     loop {
         let mut input = String::new();

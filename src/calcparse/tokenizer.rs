@@ -40,6 +40,7 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('⌉') => Some(Token::RightCeiling),
             Some('²') => Some(Token::Pow2),
             Some('³') => Some(Token::Pow3),
+            Some('°') => Some(Token::DegToRad),
             Some('0'..='9') => {
                 let mut number = next_char?.to_string();
                 while let Some(next_char) = self.expr.peek() {
@@ -162,6 +163,9 @@ impl<'a> Iterator for Tokenizer<'a> {
                 if self.expr.clone().take(5).collect::<String>() == "ound(" {
                     self.expr.by_ref().take(4).for_each(drop);
                     Some(Token::Round)
+                } else if self.expr.clone().take(2).collect::<String>() == "ad" {
+                    self.expr.by_ref().take(2).for_each(drop);
+                    Some(Token::RadToDeg)
                 } else {
                     None
                 }
