@@ -37,6 +37,8 @@ pub enum Node {
     Exp2(Box<Node>),
     Truncate(Box<Node>),
     Sign(Box<Node>),
+    Min(Vec<Node>),
+    Max(Vec<Node>),
     Log(Box<Node>, Box<Node>),
     Number(f64),
 }
@@ -101,6 +103,20 @@ pub fn eval(expr: Node) -> Result<f64, Box<dyn error::Error>> {
         Pow3(sub_expr) => {
             let result = eval(*sub_expr)?;
             Ok(result * result * result)
+        }
+        Min(args) => {
+            let mut result = f64::INFINITY;
+            for arg in args {
+                result = eval(arg)?.min(result);
+            }
+            Ok(result)
+        }
+        Max(args) => {
+            let mut result = f64::NEG_INFINITY;
+            for arg in args {
+                result = eval(arg)?.max(result);
+            }
+            Ok(result)
         }
         Atan2(expr1, expr2) => Ok(eval(*expr1)?.atan2(eval(*expr2)?)),
     }

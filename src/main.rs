@@ -38,8 +38,8 @@ fn main() {
                         old_eval = val;
                         println!("= {}\n", val)
                     }
-                    Err(_) => {
-                        println!("Error in evaluating expression. Please enter valid expression\n");
+                    Err(err) => {
+                        println!("{}\nPlease enter valid expression\n", err);
                     }
                 };
             }

@@ -51,7 +51,7 @@ impl<'a> Parser<'a> {
         }
         Ok(left_expr)
     }
-    fn static_function_n_args(&mut self, n: i32) -> Result<Vec<Node>, ParseError> {
+    fn function_static_arguments(&mut self, n: i32) -> Result<Vec<Node>, ParseError> {
         self.get_next_token()?;
         self.check_paren(Token::LeftParen)?;
         let mut args = Vec::new();
@@ -65,31 +65,41 @@ impl<'a> Parser<'a> {
         self.check_paren(Token::RightParen)?;
         Ok(args)
     }
-
-    fn _function_n_args(&mut self) -> Result<Vec<Node>, ParseError> {
+    fn function_arguments(&mut self) -> Result<Vec<Node>, ParseError> {
+        self.find_item_list(Token::LeftParen, Token::RightParen, OperPrec::DefaultZero)
+    }
+    fn find_item_list(
+        &mut self,
+        start_token: Token,
+        end_token: Token,
+        oper_prec: OperPrec,
+    ) -> Result<Vec<Node>, ParseError> {
         self.get_next_token()?;
-        self.check_paren(Token::LeftParen)?;
+        self.check_paren(start_token)?;
         let mut args = Vec::new();
         loop {
-            let arg_expr = self.generate_ast(OperPrec::DefaultZero)?;
+            if args.is_empty() && (end_token == self.current_token) {
+                self.get_next_token()?;
+                break;
+            }
+            let arg_expr = self.generate_ast(oper_prec.clone())?;
             args.push(arg_expr);
             if Token::Comma == self.current_token {
                 self.get_next_token()?;
-            } else if Token::RightParen == self.current_token {
+            } else if end_token == self.current_token {
                 self.get_next_token()?;
                 break;
             } else {
                 return Err(ParseError::InvalidOperator(format!(
                     "Expected either {:?} or {:?}, got {:?}",
                     Token::Comma,
-                    Token::RightParen,
+                    end_token,
                     self.current_token
                 )));
             }
         }
         Ok(args)
     }
-
     fn parse_number(&mut self) -> Result<Node, ParseError> {
         let token = self.current_token.clone();
         match token {
@@ -98,91 +108,109 @@ impl<'a> Parser<'a> {
                 Ok(Node::Number(self.old_answer))
             }
             Token::Abs => Ok(Node::Abs(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Floor => Ok(Node::Floor(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Ceil => Ok(Node::Ceil(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Round => Ok(Node::Round(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Sin => Ok(Node::Sin(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Cos => Ok(Node::Cos(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Tan => Ok(Node::Tan(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Sinh => Ok(Node::Sinh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Cosh => Ok(Node::Cosh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Tanh => Ok(Node::Tanh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Asin => Ok(Node::Asin(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Acos => Ok(Node::Acos(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Atan => Ok(Node::Atan(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Arsinh => Ok(Node::Arsinh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Arcosh => Ok(Node::Arcosh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Artanh => Ok(Node::Artanh(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Sqrt => Ok(Node::Sqrt(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Exp => Ok(Node::Exp(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Exp2 => Ok(Node::Exp2(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Ln => Ok(Node::Ln(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Sign => Ok(Node::Sign(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Truncate => Ok(Node::Truncate(Box::new(
-                self.static_function_n_args(1)?[0].clone(),
+                self.function_static_arguments(1)?[0].clone(),
             ))),
             Token::Atan2 => {
-                let args = self.static_function_n_args(2)?;
+                let args = self.function_static_arguments(2)?;
                 Ok(Node::Atan2(
                     Box::new(args[0].clone()),
                     Box::new(args[1].clone()),
                 ))
             }
             Token::Pow => {
-                let args = self.static_function_n_args(2)?;
+                let args = self.function_static_arguments(2)?;
                 Ok(Node::Pow(
                     Box::new(args[0].clone()),
                     Box::new(args[1].clone()),
                 ))
             }
             Token::Log => {
-                let args = self.static_function_n_args(2)?;
+                let args = self.function_static_arguments(2)?;
                 Ok(Node::Log(
                     Box::new(args[0].clone()),
                     Box::new(args[1].clone()),
                 ))
+            }
+            Token::Min => {
+                let args = self.function_arguments()?;
+                if args.is_empty() {
+                    return Err(ParseError::UnableToParse(
+                        "There's no arguments in the min function".to_string(),
+                    ));
+                }
+                Ok(Node::Min(args))
+            }
+            Token::Max => {
+                let args = self.function_arguments()?;
+                if args.is_empty() {
+                    return Err(ParseError::UnableToParse(
+                        "There's no arguments in the max function".to_string(),
+                    ));
+                }
+                Ok(Node::Max(args))
             }
             Token::Subtract => {
                 self.get_next_token()?;

@@ -136,6 +136,17 @@ impl<'a> Iterator for Tokenizer<'a> {
                     None
                 }
             }
+            Some('m') => {
+                if self.expr.clone().take(3).collect::<String>() == "in(" {
+                    self.expr.by_ref().take(2).for_each(drop);
+                    Some(Token::Min)
+                } else if self.expr.clone().take(3).collect::<String>() == "ax(" {
+                    self.expr.by_ref().take(2).for_each(drop);
+                    Some(Token::Max)
+                } else {
+                    None
+                }
+            }
             Some('p') => {
                 if self.expr.clone().take(1).collect::<String>() == "i" {
                     self.expr.by_ref().take(1).for_each(drop);
