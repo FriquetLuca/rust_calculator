@@ -1,7 +1,33 @@
-// #[derive(Debug, PartialEq, Clone)]
-// pub enum FunctionVariant {
-
-// }
+#[derive(Debug, PartialEq, Clone)]
+pub enum NativeFunction {
+    Sin,
+    Cos,
+    Tan,
+    Sinh,
+    Cosh,
+    Tanh,
+    Asin,
+    Acos,
+    Atan,
+    Atan2,
+    Arcosh,
+    Arsinh,
+    Artanh,
+    Ln,
+    Log,
+    Pow,
+    Sqrt,
+    Exp,
+    Exp2,
+    Abs,
+    Sign,
+    Truncate,
+    Floor,
+    Ceil,
+    Round,
+    Min,
+    Max,
+}
 
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
@@ -20,43 +46,16 @@ pub enum Token {
     RightCeiling,
     Pow2,
     Pow3,
-    Pow,
-    Sqrt,
     E,
     Pi,
-    Abs,
-    Floor,
-    Ceil,
-    Round,
-    Sin,
-    Cos,
-    Tan,
-    Sinh,
-    Cosh,
-    Tanh,
-    Asin,
-    Acos,
-    Atan,
-    Atan2,
-    Arcosh,
-    Arsinh,
-    Artanh,
-    Ln,
-    Log,
-    Exp,
-    Exp2,
-    Sign,
-    Truncate,
     Comma,
-    Min,
-    Max,
     Bar,
     DegToRad,
     RadToDeg,
+    ExplicitFunction(NativeFunction),
     Num(f64),
     Ans,
     Eof,
-    //Function(),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
@@ -77,9 +76,7 @@ impl Token {
             Add | Subtract => AddSub,
             Multiply | Divide | Modulo | DegToRad | RadToDeg => MulDiv,
             Caret | Pow2 | Pow3 => Power,
-            ExclamationMark | Min | Max | Ln | Sign | Truncate | Log | Exp | Exp2 | Pow | Sqrt
-            | Arcosh | Arsinh | Artanh | Abs | Floor | Ceil | Round | Sin | Cos | Tan | Sinh
-            | Cosh | Tanh | Asin | Acos | Atan | Atan2 => Functional,
+            ExclamationMark | ExplicitFunction(_) => Functional,
             _ => DefaultZero,
         }
     }

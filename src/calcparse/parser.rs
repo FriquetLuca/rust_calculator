@@ -1,12 +1,13 @@
 use std::fmt;
 
 use super::ast::Node;
-use super::token::{OperPrec, Token};
+use super::token::{NativeFunction, OperPrec, Token};
 use super::tokenizer::Tokenizer;
 
 pub struct Parser<'a> {
     tokenizer: Tokenizer<'a>,
     current_token: Token,
+    previous_token: Option<Token>,
     old_answer: f64,
 }
 impl<'a> Parser<'a> {
@@ -19,6 +20,7 @@ impl<'a> Parser<'a> {
         Ok(Parser {
             tokenizer: lexer,
             current_token: cur_token,
+            previous_token: None,
             old_answer: old_answer.unwrap_or_default(),
         })
     }
@@ -36,6 +38,7 @@ impl<'a> Parser<'a> {
             Some(token) => token,
             None => return Err(ParseError::InvalidOperator("Invalid character".into())),
         };
+        self.previous_token = Some(self.current_token.clone());
         self.current_token = next_token;
         Ok(())
     }
@@ -107,110 +110,106 @@ impl<'a> Parser<'a> {
                 self.get_next_token()?;
                 Ok(Node::Number(self.old_answer))
             }
-            Token::Abs => Ok(Node::Abs(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Floor => Ok(Node::Floor(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Ceil => Ok(Node::Ceil(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Round => Ok(Node::Round(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Sin => Ok(Node::Sin(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Cos => Ok(Node::Cos(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Tan => Ok(Node::Tan(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Sinh => Ok(Node::Sinh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Cosh => Ok(Node::Cosh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Tanh => Ok(Node::Tanh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Asin => Ok(Node::Asin(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Acos => Ok(Node::Acos(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Atan => Ok(Node::Atan(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Arsinh => Ok(Node::Arsinh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Arcosh => Ok(Node::Arcosh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Artanh => Ok(Node::Artanh(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Sqrt => Ok(Node::Sqrt(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Exp => Ok(Node::Exp(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Exp2 => Ok(Node::Exp2(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Ln => Ok(Node::Ln(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Sign => Ok(Node::Sign(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Truncate => Ok(Node::Truncate(Box::new(
-                self.function_static_arguments(1)?[0].clone(),
-            ))),
-            Token::Atan2 => {
-                let args = self.function_static_arguments(2)?;
-                Ok(Node::Atan2(
-                    Box::new(args[0].clone()),
-                    Box::new(args[1].clone()),
-                ))
-            }
-            Token::Pow => {
-                let args = self.function_static_arguments(2)?;
-                Ok(Node::Pow(
-                    Box::new(args[0].clone()),
-                    Box::new(args[1].clone()),
-                ))
-            }
-            Token::Log => {
-                let args = self.function_static_arguments(2)?;
-                Ok(Node::Log(
-                    Box::new(args[0].clone()),
-                    Box::new(args[1].clone()),
-                ))
-            }
-            Token::Min => {
-                let args = self.function_arguments()?;
-                if args.is_empty() {
-                    return Err(ParseError::UnableToParse(
-                        "There's no arguments in the min function".to_string(),
-                    ));
-                }
-                Ok(Node::Min(args))
-            }
-            Token::Max => {
-                let args = self.function_arguments()?;
-                if args.is_empty() {
-                    return Err(ParseError::UnableToParse(
-                        "There's no arguments in the max function".to_string(),
-                    ));
-                }
-                Ok(Node::Max(args))
+            Token::ExplicitFunction(current_function) => {
+                let current_function = match current_function {
+                    NativeFunction::Abs => {
+                        Node::Abs(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Floor => {
+                        Node::Floor(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Ceil => {
+                        Node::Ceil(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Round => {
+                        Node::Round(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Sin => {
+                        Node::Sin(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Cos => {
+                        Node::Cos(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Tan => {
+                        Node::Tan(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Sinh => {
+                        Node::Sinh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Cosh => {
+                        Node::Cosh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Tanh => {
+                        Node::Tanh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Asin => {
+                        Node::Asin(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Acos => {
+                        Node::Acos(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Atan => {
+                        Node::Atan(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Arsinh => {
+                        Node::Arsinh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Arcosh => {
+                        Node::Arcosh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Artanh => {
+                        Node::Artanh(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Sqrt => {
+                        Node::Sqrt(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Exp => {
+                        Node::Exp(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Exp2 => {
+                        Node::Exp2(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Ln => {
+                        Node::Ln(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Sign => {
+                        Node::Sign(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Truncate => {
+                        Node::Truncate(Box::new(self.function_static_arguments(1)?[0].clone()))
+                    }
+                    NativeFunction::Atan2 => {
+                        let args = self.function_static_arguments(2)?;
+                        Node::Atan2(Box::new(args[0].clone()), Box::new(args[1].clone()))
+                    }
+                    NativeFunction::Pow => {
+                        let args = self.function_static_arguments(2)?;
+                        Node::Pow(Box::new(args[0].clone()), Box::new(args[1].clone()))
+                    }
+                    NativeFunction::Log => {
+                        let args = self.function_static_arguments(2)?;
+                        Node::Log(Box::new(args[0].clone()), Box::new(args[1].clone()))
+                    }
+                    NativeFunction::Min => {
+                        let args = self.function_arguments()?;
+                        if args.is_empty() {
+                            return Err(ParseError::UnableToParse(
+                                "There's no arguments in the min function".to_string(),
+                            ));
+                        }
+                        Node::Min(args)
+                    }
+                    NativeFunction::Max => {
+                        let args = self.function_arguments()?;
+                        if args.is_empty() {
+                            return Err(ParseError::UnableToParse(
+                                "There's no arguments in the max function".to_string(),
+                            ));
+                        }
+                        Node::Max(args)
+                    }
+                };
+                self.implicit_multiply(current_function)
             }
             Token::Subtract => {
                 self.get_next_token()?;
@@ -224,15 +223,7 @@ impl<'a> Parser<'a> {
             }
             Token::Num(i) => {
                 self.get_next_token()?;
-                if (self.current_token == Token::LeftParen)
-                    || (self.current_token == Token::LeftCeiling)
-                    || (self.current_token == Token::LeftFloor)
-                    || (self.current_token == Token::Bar)
-                {
-                    let right = self.generate_ast(OperPrec::DefaultZero)?;
-                    return Ok(Node::Multiply(Box::new(Node::Number(i)), Box::new(right)));
-                }
-                Ok(Node::Number(i))
+                self.implicit_multiply(Node::Number(i))
             }
             Token::Pi => {
                 self.get_next_token()?;
@@ -267,6 +258,18 @@ impl<'a> Parser<'a> {
             )),
         }
     }
+    fn implicit_multiply(&mut self, node: Node) -> Result<Node, ParseError> {
+        if (self.current_token == Token::LeftParen)
+            || (self.current_token == Token::LeftCeiling)
+            || (self.current_token == Token::LeftFloor)
+            || matches!(self.current_token, Token::ExplicitFunction(_))
+            || matches!(self.current_token, Token::Num(_))
+        {
+            let right = self.generate_ast(OperPrec::MulDiv)?;
+            return Ok(Node::Multiply(Box::new(node), Box::new(right)));
+        }
+        Ok(node)
+    }
     fn get_enclosed_elements_with_impl_mult(
         &mut self,
         oper_prec: OperPrec,
@@ -276,18 +279,7 @@ impl<'a> Parser<'a> {
         self.get_next_token()?;
         let expr = self.generate_ast(oper_prec)?;
         self.check_paren(end_token)?;
-        if (self.current_token == Token::LeftParen)
-            || (self.current_token == Token::LeftCeiling)
-            || (self.current_token == Token::LeftFloor)
-            || (self.current_token == Token::Bar)
-        {
-            let right = self.generate_ast(OperPrec::MulDiv)?;
-            return Ok(Node::Multiply(Box::new(get_node(expr)), Box::new(right)));
-        } else if matches!(self.current_token, Token::Num(_)) {
-            let right = self.generate_ast(OperPrec::DefaultZero)?;
-            return Ok(Node::Multiply(Box::new(get_node(expr)), Box::new(right)));
-        }
-        Ok(get_node(expr))
+        self.implicit_multiply(get_node(expr))
     }
     fn check_paren(&mut self, expected: Token) -> Result<(), ParseError> {
         if expected == self.current_token {
@@ -329,7 +321,7 @@ impl<'a> Parser<'a> {
             }
             Token::ExclamationMark => {
                 self.get_next_token()?;
-                Ok(Node::Factorial(Box::new(left_expr)))
+                self.implicit_multiply(Node::Factorial(Box::new(left_expr)))
             }
             Token::DegToRad => {
                 self.get_next_token()?;

@@ -1,4 +1,4 @@
-use super::token::Token;
+use super::token::{NativeFunction, Token};
 use std::iter::Peekable;
 use std::str::Chars;
 
@@ -72,37 +72,37 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('a') => {
                 if self.expr.clone().take(5).collect::<String>() == "tan2(" {
                     self.expr.by_ref().take(4).for_each(drop);
-                    Some(Token::Atan2)
+                    Some(Token::ExplicitFunction(NativeFunction::Atan2))
                 } else if self.expr.clone().take(4).collect::<String>() == "sin(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Asin)
+                    Some(Token::ExplicitFunction(NativeFunction::Asin))
                 } else if self.expr.clone().take(4).collect::<String>() == "cos(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Acos)
+                    Some(Token::ExplicitFunction(NativeFunction::Acos))
                 } else if self.expr.clone().take(4).collect::<String>() == "tan(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Atan)
+                    Some(Token::ExplicitFunction(NativeFunction::Atan))
                 } else if self.expr.clone().take(4).collect::<String>() == "rsinh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Arsinh)
+                    Some(Token::ExplicitFunction(NativeFunction::Arsinh))
                 } else if self.expr.clone().take(4).collect::<String>() == "rcosh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Arcosh)
+                    Some(Token::ExplicitFunction(NativeFunction::Arcosh))
                 } else if self.expr.clone().take(4).collect::<String>() == "rtanh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Artanh)
+                    Some(Token::ExplicitFunction(NativeFunction::Artanh))
                 } else if self.expr.clone().take(4).collect::<String>() == "sinh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Arsinh)
+                    Some(Token::ExplicitFunction(NativeFunction::Arsinh))
                 } else if self.expr.clone().take(4).collect::<String>() == "cosh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Arcosh)
+                    Some(Token::ExplicitFunction(NativeFunction::Arcosh))
                 } else if self.expr.clone().take(4).collect::<String>() == "tanh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Artanh)
+                    Some(Token::ExplicitFunction(NativeFunction::Artanh))
                 } else if self.expr.clone().take(3).collect::<String>() == "bs(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Abs)
+                    Some(Token::ExplicitFunction(NativeFunction::Abs))
                 } else {
                     None
                 }
@@ -110,13 +110,13 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('c') => {
                 if self.expr.clone().take(3).collect::<String>() == "os(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Cos)
+                    Some(Token::ExplicitFunction(NativeFunction::Cos))
                 } else if self.expr.clone().take(4).collect::<String>() == "osh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Cosh)
+                    Some(Token::ExplicitFunction(NativeFunction::Cosh))
                 } else if self.expr.clone().take(4).collect::<String>() == "eil(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Ceil)
+                    Some(Token::ExplicitFunction(NativeFunction::Ceil))
                 } else {
                     None
                 }
@@ -124,7 +124,7 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('f') => {
                 if self.expr.clone().take(5).collect::<String>() == "loor(" {
                     self.expr.by_ref().take(4).for_each(drop);
-                    Some(Token::Floor)
+                    Some(Token::ExplicitFunction(NativeFunction::Floor))
                 } else {
                     None
                 }
@@ -132,10 +132,10 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('e') => {
                 if self.expr.clone().take(3).collect::<String>() == "xp(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Exp)
+                    Some(Token::ExplicitFunction(NativeFunction::Exp))
                 } else if self.expr.clone().take(4).collect::<String>() == "xp2(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Exp2)
+                    Some(Token::ExplicitFunction(NativeFunction::Exp2))
                 } else {
                     Some(Token::E)
                 }
@@ -143,10 +143,10 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('l') => {
                 if self.expr.clone().take(2).collect::<String>() == "n(" {
                     self.expr.by_ref().take(1).for_each(drop);
-                    Some(Token::Ln)
+                    Some(Token::ExplicitFunction(NativeFunction::Ln))
                 } else if self.expr.clone().take(3).collect::<String>() == "og(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Log)
+                    Some(Token::ExplicitFunction(NativeFunction::Log))
                 } else {
                     None
                 }
@@ -154,10 +154,10 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('m') => {
                 if self.expr.clone().take(3).collect::<String>() == "in(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Min)
+                    Some(Token::ExplicitFunction(NativeFunction::Min))
                 } else if self.expr.clone().take(3).collect::<String>() == "ax(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Max)
+                    Some(Token::ExplicitFunction(NativeFunction::Max))
                 } else {
                     None
                 }
@@ -168,7 +168,7 @@ impl<'a> Iterator for Tokenizer<'a> {
                     Some(Token::Pi)
                 } else if self.expr.clone().take(3).collect::<String>() == "ow(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Pow)
+                    Some(Token::ExplicitFunction(NativeFunction::Pow))
                 } else {
                     None
                 }
@@ -176,7 +176,7 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('r') => {
                 if self.expr.clone().take(5).collect::<String>() == "ound(" {
                     self.expr.by_ref().take(4).for_each(drop);
-                    Some(Token::Round)
+                    Some(Token::ExplicitFunction(NativeFunction::Round))
                 } else if self.expr.clone().take(2).collect::<String>() == "ad" {
                     self.expr.by_ref().take(2).for_each(drop);
                     Some(Token::RadToDeg)
@@ -187,22 +187,22 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('s') => {
                 if self.expr.clone().take(3).collect::<String>() == "in(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Sin)
+                    Some(Token::ExplicitFunction(NativeFunction::Sin))
                 } else if self.expr.clone().take(4).collect::<String>() == "inh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Sinh)
+                    Some(Token::ExplicitFunction(NativeFunction::Sinh))
                 } else if self.expr.clone().take(4).collect::<String>() == "qrt(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Sqrt)
+                    Some(Token::ExplicitFunction(NativeFunction::Sqrt))
                 } else if self.expr.clone().take(4).collect::<String>() == "ign(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Sign)
+                    Some(Token::ExplicitFunction(NativeFunction::Sign))
                 } else if self.expr.clone().take(6).collect::<String>() == "ignum(" {
                     self.expr.by_ref().take(5).for_each(drop);
-                    Some(Token::Sign)
+                    Some(Token::ExplicitFunction(NativeFunction::Sign))
                 } else if self.expr.clone().take(3).collect::<String>() == "gn(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Sign)
+                    Some(Token::ExplicitFunction(NativeFunction::Sign))
                 } else {
                     None
                 }
@@ -210,16 +210,16 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('t') => {
                 if self.expr.clone().take(3).collect::<String>() == "an(" {
                     self.expr.by_ref().take(2).for_each(drop);
-                    Some(Token::Tan)
+                    Some(Token::ExplicitFunction(NativeFunction::Tan))
                 } else if self.expr.clone().take(4).collect::<String>() == "anh(" {
                     self.expr.by_ref().take(3).for_each(drop);
-                    Some(Token::Tanh)
+                    Some(Token::ExplicitFunction(NativeFunction::Tanh))
                 } else if self.expr.clone().take(8).collect::<String>() == "runcate(" {
                     self.expr.by_ref().take(7).for_each(drop);
-                    Some(Token::Truncate)
+                    Some(Token::ExplicitFunction(NativeFunction::Truncate))
                 } else if self.expr.clone().take(5).collect::<String>() == "runc(" {
                     self.expr.by_ref().take(4).for_each(drop);
-                    Some(Token::Truncate)
+                    Some(Token::ExplicitFunction(NativeFunction::Truncate))
                 } else {
                     None
                 }
@@ -252,21 +252,33 @@ mod tests {
     #[test]
     fn test_sin_function() {
         let mut tokenizer = Tokenizer::new("sin(3.14159)");
-        assert_eq!(tokenizer.next().unwrap(), Token::Sin)
+        assert_eq!(
+            tokenizer.next().unwrap(),
+            Token::ExplicitFunction(NativeFunction::Sin)
+        )
     }
     #[test]
     fn test_cos_function() {
         let mut tokenizer = Tokenizer::new("cos(3.14159)");
-        assert_eq!(tokenizer.next().unwrap(), Token::Cos)
+        assert_eq!(
+            tokenizer.next().unwrap(),
+            Token::ExplicitFunction(NativeFunction::Cos)
+        )
     }
     #[test]
     fn test_tan_function() {
-        let mut tokenizer = Tokenizer::new("tan(3.14159)");
-        assert_eq!(tokenizer.next().unwrap(), Token::Tan)
+        let mut tokenizer = Tokenizer::new("tan(.14159)");
+        assert_eq!(
+            tokenizer.next().unwrap(),
+            Token::ExplicitFunction(NativeFunction::Tan)
+        )
     }
     #[test]
     fn test_atan2_function() {
-        let mut tokenizer = Tokenizer::new("atan2(3.14159, 2.1415)");
-        assert_eq!(tokenizer.next().unwrap(), Token::Atan2)
+        let mut tokenizer = Tokenizer::new("atan2(.14159, 2.1415)");
+        assert_eq!(
+            tokenizer.next().unwrap(),
+            Token::ExplicitFunction(NativeFunction::Atan2)
+        )
     }
 }
