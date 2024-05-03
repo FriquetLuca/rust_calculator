@@ -2,6 +2,17 @@
 
 >This project is just a simple calculator that parse a string such as `2 + sin(7 / 3) / 2` to compute it's result.
 
+## Installation
+
+Clone the project, then use the following command in the terminal:
+```bash
+cargo build
+cargo install --path .
+```
+
+You're ready to go!
+Next, when you want to start the calculator, just use the command `calculator`.
+
 ## Getters
 
 1. PreviousResult (@)
