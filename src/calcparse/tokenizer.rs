@@ -245,6 +245,11 @@ mod tests {
         assert_eq!(tokenizer.next().unwrap(), Token::Num(34.5))
     }
     #[test]
+    fn test_decimal_number_omit_zero() {
+        let mut tokenizer = Tokenizer::new(".5");
+        assert_eq!(tokenizer.next().unwrap(), Token::Num(0.5))
+    }
+    #[test]
     fn test_sin_function() {
         let mut tokenizer = Tokenizer::new("sin(3.14159)");
         assert_eq!(tokenizer.next().unwrap(), Token::Sin)

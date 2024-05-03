@@ -56,7 +56,7 @@ pub enum Token {
     Num(f64),
     Ans,
     Eof,
-    Function(),
+    //Function(),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]
