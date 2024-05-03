@@ -1,3 +1,8 @@
+// #[derive(Debug, PartialEq, Clone)]
+// pub enum FunctionVariant {
+
+// }
+
 #[derive(Debug, PartialEq, Clone)]
 pub enum Token {
     Add,
@@ -51,6 +56,7 @@ pub enum Token {
     Num(f64),
     Ans,
     Eof,
+    Function(),
 }
 
 #[derive(Debug, PartialEq, PartialOrd, Clone)]

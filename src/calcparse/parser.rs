@@ -224,6 +224,14 @@ impl<'a> Parser<'a> {
             }
             Token::Num(i) => {
                 self.get_next_token()?;
+                if (self.current_token == Token::LeftParen)
+                    || (self.current_token == Token::LeftCeiling)
+                    || (self.current_token == Token::LeftFloor)
+                    || (self.current_token == Token::Bar)
+                {
+                    let right = self.generate_ast(OperPrec::DefaultZero)?;
+                    return Ok(Node::Multiply(Box::new(Node::Number(i)), Box::new(right)));
+                }
                 Ok(Node::Number(i))
             }
             Token::Pi => {
@@ -234,38 +242,52 @@ impl<'a> Parser<'a> {
                 self.get_next_token()?;
                 Ok(Node::Number(std::f64::consts::E))
             }
-            Token::LeftParen => {
-                self.get_next_token()?;
-                let expr = self.generate_ast(OperPrec::DefaultZero)?;
-                self.check_paren(Token::RightParen)?;
-                if self.current_token == Token::LeftParen {
-                    let right = self.generate_ast(OperPrec::MulDiv)?;
-                    return Ok(Node::Multiply(Box::new(expr), Box::new(right)));
-                }
-                Ok(expr)
-            }
-            Token::Bar => {
-                self.get_next_token()?;
-                let expr = self.generate_ast(OperPrec::DefaultZero)?;
-                self.check_paren(Token::Bar)?;
-                Ok(Node::Abs(Box::new(expr)))
-            }
-            Token::LeftFloor => {
-                self.get_next_token()?;
-                let expr = self.generate_ast(OperPrec::DefaultZero)?;
-                self.check_paren(Token::RightFloor)?;
-                Ok(Node::Floor(Box::new(expr)))
-            }
-            Token::LeftCeiling => {
-                self.get_next_token()?;
-                let expr = self.generate_ast(OperPrec::DefaultZero)?;
-                self.check_paren(Token::RightCeiling)?;
-                Ok(Node::Floor(Box::new(expr)))
-            }
+            Token::LeftParen => self.get_enclosed_elements_with_impl_mult(
+                OperPrec::DefaultZero,
+                Token::RightParen,
+                |expr| expr,
+            ),
+            Token::Bar => self.get_enclosed_elements_with_impl_mult(
+                OperPrec::DefaultZero,
+                Token::Bar,
+                |expr| Node::Abs(Box::new(expr)),
+            ),
+            Token::LeftFloor => self.get_enclosed_elements_with_impl_mult(
+                OperPrec::DefaultZero,
+                Token::RightFloor,
+                |expr| Node::Floor(Box::new(expr)),
+            ),
+            Token::LeftCeiling => self.get_enclosed_elements_with_impl_mult(
+                OperPrec::DefaultZero,
+                Token::RightCeiling,
+                |expr| Node::Ceil(Box::new(expr)),
+            ),
             _ => Err(ParseError::UnableToParse(
                 "Unknown parsing token for parsing number".to_string(),
             )),
         }
+    }
+    fn get_enclosed_elements_with_impl_mult(
+        &mut self,
+        oper_prec: OperPrec,
+        end_token: Token,
+        get_node: fn(Node) -> Node,
+    ) -> Result<Node, ParseError> {
+        self.get_next_token()?;
+        let expr = self.generate_ast(oper_prec)?;
+        self.check_paren(end_token)?;
+        if (self.current_token == Token::LeftParen)
+            || (self.current_token == Token::LeftCeiling)
+            || (self.current_token == Token::LeftFloor)
+            || (self.current_token == Token::Bar)
+        {
+            let right = self.generate_ast(OperPrec::MulDiv)?;
+            return Ok(Node::Multiply(Box::new(get_node(expr)), Box::new(right)));
+        } else if matches!(self.current_token, Token::Num(_)) {
+            let right = self.generate_ast(OperPrec::DefaultZero)?;
+            return Ok(Node::Multiply(Box::new(get_node(expr)), Box::new(right)));
+        }
+        Ok(get_node(expr))
     }
     fn check_paren(&mut self, expected: Token) -> Result<(), ParseError> {
         if expected == self.current_token {

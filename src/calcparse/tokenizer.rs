@@ -18,9 +18,9 @@ impl<'a> Iterator for Tokenizer<'a> {
     type Item = Token;
 
     fn next(&mut self) -> Option<Token> {
-        let next_char = self.expr.next();
+        let current_char = self.expr.next();
 
-        match next_char {
+        match current_char {
             Some('@') => Some(Token::Ans),
             Some('+') => Some(Token::Add),
             Some('-') => Some(Token::Subtract),
@@ -41,18 +41,32 @@ impl<'a> Iterator for Tokenizer<'a> {
             Some('²') => Some(Token::Pow2),
             Some('³') => Some(Token::Pow3),
             Some('°') => Some(Token::DegToRad),
+            Some('.') => {
+                let next_char = self.expr.peek()?;
+                if next_char.is_ascii_digit() {
+                    let mut number = "0".to_string();
+                    number.push(current_char?);
+                    while let Some(next_char) = self.expr.peek() {
+                        if next_char.is_ascii_digit() || next_char == &'.' {
+                            number.push(self.expr.next()?);
+                        } else {
+                            break;
+                        }
+                    }
+                    Some(Token::Num(number.parse::<f64>().unwrap()))
+                } else {
+                    None
+                }
+            }
             Some('0'..='9') => {
-                let mut number = next_char?.to_string();
+                let mut number = current_char?.to_string();
                 while let Some(next_char) = self.expr.peek() {
                     if next_char.is_ascii_digit() || next_char == &'.' {
                         number.push(self.expr.next()?);
-                    } else if next_char == &'(' {
-                        return None;
                     } else {
                         break;
                     }
                 }
-
                 Some(Token::Num(number.parse::<f64>().unwrap()))
             }
             Some('a') => {
