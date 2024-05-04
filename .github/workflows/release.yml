@@ -2,123 +2,76 @@ name: Release
 
 on:
   push:
-    branches:
-      - master
-
-# Only allow one release workflow to execute at a time, since each release
-# workflow uses shared resources (git tags, package registries)
-concurrency:
-  group: ${{ github.workflow }}
+    tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
 
 env:
-  APP_NAME: calculator
-  RUST_BACKTRACE: 1
+  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  CARGO_TERM_COLOR: always
 
 jobs:
-  get-next-version:
-    uses: semantic-release-action/next-release-version/.github/workflows/next-release-version.yml@v4
-
-  # Compile native CLI binary
-  build-cli:
-    name: Build CLI ${{ matrix.build.target }}
-    if: needs.get-next-version.outputs.new-release-published == 'true'
-    runs-on: ${{ matrix.build.os }}
-    needs:
-      - get-next-version
-    env:
-      CARGO: cargo
-
-    strategy:
-      matrix:
-        build:
-          # alphabatized by target
-          - os: macOS-latest
-            target: aarch64-apple-darwin
-            cross: true
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-gnu
-            cross: true
-          - os: ubuntu-latest
-            target: aarch64-unknown-linux-musl
-            cross: true
-          - os: ubuntu-latest
-            target: i686-unknown-linux-gnu
-            cross: true
-          - os: ubuntu-latest
-            target: i686-unknown-linux-musl
-            cross: true
-          - os: macOS-latest
-            target: x86_64-apple-darwin
-            cross: false
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-gnu
-            cross: false
-          - os: ubuntu-latest
-            target: x86_64-unknown-linux-musl
-            cross: false
+  macos:
+    runs-on: macos-11
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install build inputs
-        if: runner.os == 'Linux' && !matrix.build.cross
-        run: sudo apt install musl-tools
-
-      - name: Install Rust toolchain
-        uses: dtolnay/rust-toolchain@master
-        id: rust-toolchain
-        with:
-          toolchain: stable
-          target: ${{ matrix.build.target }}
-
-      - name: Cache cargo
-        uses: actions/cache@v4
-        id: cache-cargo
-        with:
-          path: |
-            ~/.cargo/bin/
-            ~/.cargo/registry/index/
-            ~/.cargo/registry/cache/
-            ~/.cargo/git/db/
-            target/
-          key: ${{ runner.os }}-cargo-${{ steps.rust-toolchain.outputs.cachekey }}-${{ hashFiles('**/Cargo.lock') }}
-
-      - name: Install semantic-release-cargo
-        uses: taiki-e/install-action@v2
-        with:
-          tool: semantic-release-cargo@2
-
-      - name: Prepare semantic-release for Rust
-        run: semantic-release-cargo prepare ${{ needs.get-next-version.outputs.new-release-version }}
-
-      - name: Install cross
-        uses: taiki-e/install-action@v2
-        with:
-          tool: cross
-
-      - name: Configure cross
-        if: matrix.build.cross
-        run: echo "CARGO=cross" >> "$GITHUB_ENV"
-
-      - name: Compile release binary
-        run: ${{ env.CARGO }} build --bin calculator --release --target ${{ matrix.build.target }} --verbose
-
-      - name: Create release archive
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: brew install scdoc
+      - name: Install ARM target
+        run: rustup update && rustup target add aarch64-apple-darwin
+      - name: Test
+        run: cargo test --release
+      - name: Build ARM
+        run: cargo build --release --target=aarch64-apple-darwin
+      - name: Make DMG
+        run: make dmg-universal
+      - name: Upload Application
         run: |
-          mkdir dist
-          cp target/${{ matrix.build.target }}/release/calculator dist/calculator-${{ matrix.build.target }}
+          mv ./target/release/osx/Calculator.dmg ./Calculator-${GITHUB_REF##*/}.dmg
+          ./.github/workflows/upload_asset.sh ./Calculator-${GITHUB_REF##*/}.dmg $GITHUB_TOKEN
 
-      - name: Create binary checksum
-        run: shasum --algorithm 256 --binary calculator-${{ matrix.build.target }} | tee calculator-${{ matrix.build.target }}-SHA256SUM.txt
-        working-directory: ./dist
+  windows:
+    runs-on: windows-latest
 
-      - name: Upload release artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: ${{ matrix.build.target }}
-          path: |
-            dist/calculator-${{ matrix.build.target }}
-            dist/calculator-${{ matrix.build.target }}-SHA256SUM.txt
-          if-no-files-found: error
-          retention-days: 1
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Test
+        run: cargo test --release
+      - name: Build
+        run: cargo build --release
+      - name: Upload portable executable
+        run: |
+          cp ./target/release/calculator.exe ./Calculator-${GITHUB_REF##*/}-portable.exe
+          ./.github/workflows/upload_asset.sh \
+            ./Calculator-${GITHUB_REF##*/}-portable.exe $GITHUB_TOKEN
+      - name: Install WiX
+        run: dotnet tool install --global wix --version 4.0.5
+      - name: Create msi installer
+        run: |
+          wix extension add WixToolset.UI.wixext/4.0.5 WixToolset.Util.wixext/4.0.5
+          wix build -arch "x64" -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext \
+          -out "./Calculator-${GITHUB_REF##*/}-installer.msi" "calculator/windows/wix/calculator.wxs"
+      - name: Upload msi installer
+        run: |
+          ./.github/workflows/upload_asset.sh \
+            ./Calculator-${GITHUB_REF##*/}-installer.msi $GITHUB_TOKEN
+
+  linux:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install dependencies
+        run: |
+          sudo apt-get install cmake pkg-config libfreetype6-dev libfontconfig1-dev \
+            libxcb-xfixes0-dev libxkbcommon-dev
+      - name: Upload Assets
+        run: |
+          ./.github/workflows/upload_asset.sh ./Calculator.svg $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./Calculator.1.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./Calculator-msg.1.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./Calculator.5.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./Calculator-bindings.5.gz $GITHUB_TOKEN
