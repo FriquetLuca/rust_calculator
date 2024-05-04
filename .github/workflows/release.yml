@@ -13,7 +13,7 @@ jobs:
     runs-on: macos-11
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: brew install scdoc
       - name: Install ARM target
@@ -37,7 +37,7 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Test
         run: cargo test --release
       - name: Build
@@ -63,14 +63,13 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v3
       - name: Install dependencies
         run: |
           sudo apt-get install cmake pkg-config libfreetype6-dev libfontconfig1-dev \
             libxcb-xfixes0-dev libxkbcommon-dev
       - name: Upload Assets
         run: |
-          ./.github/workflows/upload_asset.sh ./Calculator.svg $GITHUB_TOKEN
           ./.github/workflows/upload_asset.sh ./Calculator.1.gz $GITHUB_TOKEN
           ./.github/workflows/upload_asset.sh ./Calculator-msg.1.gz $GITHUB_TOKEN
           ./.github/workflows/upload_asset.sh ./Calculator.5.gz $GITHUB_TOKEN
