@@ -1,9 +1,5 @@
 name: Release
 
-
-permissions:
-  contents: write
-
 on:
   push:
     tags: ["v[0-9]+.[0-9]+.[0-9]+*"]
@@ -17,7 +13,7 @@ jobs:
     runs-on: macos-11
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Install dependencies
         run: brew install scdoc
       - name: Install ARM target
@@ -28,8 +24,8 @@ jobs:
         run: make dmg-universal
       - name: Upload Application
         run: |
-          mv ./target/release/osx/Rust_calculator.dmg ./Rust_calculator-${GITHUB_REF##*/}.dmg
-          ./.github/workflows/upload_asset.sh ./Rust_calculator-${GITHUB_REF##*/}.dmg $GITHUB_TOKEN
+          mv ./target/release/osx/rust_calculator.dmg ./rust_calculator-${GITHUB_REF##*/}.dmg
+          ./.github/workflows/upload_asset.sh ./rust_calculator-${GITHUB_REF##*/}.dmg $GITHUB_TOKEN
 
   windows:
     runs-on: windows-latest
@@ -39,28 +35,14 @@ jobs:
         shell: bash
 
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
       - name: Build
         run: cargo build --release
       - name: Upload portable executable
         run: |
-          cp ./target/release/rust_calculator.exe ./Rust_calculator-${GITHUB_REF##*/}-portable.exe
+          cp ./target/release/rust_calculator.exe ./rust_calculator-${GITHUB_REF##*/}-portable.exe
           ./.github/workflows/upload_asset.sh \
-            ./Rust_calculator-${GITHUB_REF##*/}-portable.exe $GITHUB_TOKEN
-      - name: Install WiX
-        run: dotnet tool install --global wix --version 4.0.5
-      - name: Create msi installer
-        run: |
-          ls ./
-          ls ./rust_calculator/windows/wix/
-          wix extension add WixToolset.UI.wixext/4.0.5 WixToolset.Util.wixext/4.0.5
-          wix build -arch "x64" -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext \
-          -out "./Rust_calculator-${GITHUB_REF##*/}-installer.msi" "rust_calculator/windows/wix/rust_calculator.wxs"
-      - name: Upload msi installer
-        run: |
-          ls ./
-          ./.github/workflows/upload_asset.sh \
-            ./Rust_calculator-${GITHUB_REF##*/}-installer.msi $GITHUB_TOKEN
+            ./rust_calculator-${GITHUB_REF##*/}-portable.exe $GITHUB_TOKEN
 
   linux:
     runs-on: ubuntu-latest
@@ -73,7 +55,6 @@ jobs:
             libxcb-xfixes0-dev libxkbcommon-dev
       - name: Upload Assets
         run: |
-          ls ./
           ./.github/workflows/upload_asset.sh ./rust_calculator.1.gz $GITHUB_TOKEN
           ./.github/workflows/upload_asset.sh ./rust_calculator-msg.1.gz $GITHUB_TOKEN
           ./.github/workflows/upload_asset.sh ./rust_calculator.5.gz $GITHUB_TOKEN

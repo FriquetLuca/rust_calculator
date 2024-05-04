@@ -11,7 +11,7 @@ repository = "https://github.com/FriquetLuca/rust_calculator"
 statrs = "0.16"
 
 [[bin]]
-name = "calculator"
+name = "rust_calculator"
 path = "src/main.rs"
 
 [profile.release]
