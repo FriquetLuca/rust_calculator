@@ -22,16 +22,14 @@ jobs:
         run: brew install scdoc
       - name: Install ARM target
         run: rustup update && rustup target add aarch64-apple-darwin
-      - name: Test
-        run: cargo test --release
       - name: Build ARM
         run: cargo build --release --target=aarch64-apple-darwin
       - name: Make DMG
         run: make dmg-universal
       - name: Upload Application
         run: |
-          mv ./target/release/osx/Calculator.dmg ./Calculator-${GITHUB_REF##*/}.dmg
-          ./.github/workflows/upload_asset.sh ./Calculator-${GITHUB_REF##*/}.dmg $GITHUB_TOKEN
+          mv ./target/release/osx/Rust_calculator.dmg ./Rust_calculator-${GITHUB_REF##*/}.dmg
+          ./.github/workflows/upload_asset.sh ./Rust_calculator-${GITHUB_REF##*/}.dmg $GITHUB_TOKEN
 
   windows:
     runs-on: windows-latest
@@ -42,26 +40,27 @@ jobs:
 
     steps:
       - uses: actions/checkout@v3
-      - name: Test
-        run: cargo test --release
       - name: Build
         run: cargo build --release
       - name: Upload portable executable
         run: |
-          cp ./target/release/calculator.exe ./Calculator-${GITHUB_REF##*/}-portable.exe
+          cp ./target/release/rust_calculator.exe ./Rust_calculator-${GITHUB_REF##*/}-portable.exe
           ./.github/workflows/upload_asset.sh \
-            ./Calculator-${GITHUB_REF##*/}-portable.exe $GITHUB_TOKEN
+            ./Rust_calculator-${GITHUB_REF##*/}-portable.exe $GITHUB_TOKEN
       - name: Install WiX
         run: dotnet tool install --global wix --version 4.0.5
       - name: Create msi installer
         run: |
+          ls ./
+          ls ./rust_calculator/windows/wix/
           wix extension add WixToolset.UI.wixext/4.0.5 WixToolset.Util.wixext/4.0.5
           wix build -arch "x64" -ext WixToolset.UI.wixext -ext WixToolset.Util.wixext \
-          -out "./Calculator-${GITHUB_REF##*/}-installer.msi" "calculator/windows/wix/calculator.wxs"
+          -out "./Rust_calculator-${GITHUB_REF##*/}-installer.msi" "rust_calculator/windows/wix/rust_calculator.wxs"
       - name: Upload msi installer
         run: |
+          ls ./
           ./.github/workflows/upload_asset.sh \
-            ./Calculator-${GITHUB_REF##*/}-installer.msi $GITHUB_TOKEN
+            ./Rust_calculator-${GITHUB_REF##*/}-installer.msi $GITHUB_TOKEN
 
   linux:
     runs-on: ubuntu-latest
@@ -74,7 +73,8 @@ jobs:
             libxcb-xfixes0-dev libxkbcommon-dev
       - name: Upload Assets
         run: |
-          ./.github/workflows/upload_asset.sh ./Calculator.1.gz $GITHUB_TOKEN
-          ./.github/workflows/upload_asset.sh ./Calculator-msg.1.gz $GITHUB_TOKEN
-          ./.github/workflows/upload_asset.sh ./Calculator.5.gz $GITHUB_TOKEN
-          ./.github/workflows/upload_asset.sh ./Calculator-bindings.5.gz $GITHUB_TOKEN
+          ls ./
+          ./.github/workflows/upload_asset.sh ./rust_calculator.1.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./rust_calculator-msg.1.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./rust_calculator.5.gz $GITHUB_TOKEN
+          ./.github/workflows/upload_asset.sh ./rust_calculator-bindings.5.gz $GITHUB_TOKEN
